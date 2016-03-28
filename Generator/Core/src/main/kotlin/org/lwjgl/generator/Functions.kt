@@ -32,13 +32,13 @@ import java.util.regex.Pattern
 
 internal val ADDRESS = "address()"
 
-internal val RESULT = "__result"
+/*internal*/ val RESULT = "__result"
 internal val POINTER_POSTFIX = "Address"
 internal val MAP_OLD = "old_buffer"
 internal val MAP_LENGTH = "length"
-internal val FUNCTION_ADDRESS = "__functionAddress"
+/*internal*/ val FUNCTION_ADDRESS = "__functionAddress"
 
-internal val JNIENV = "__env"
+/*internal*/ val JNIENV = "__env"
 
 /** Special parameter that generates an explicit function address parameter. */
 val EXPLICIT_FUNCTION_ADDRESS = voidptr.IN(FUNCTION_ADDRESS, "the function address")

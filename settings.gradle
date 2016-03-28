@@ -1,6 +1,3 @@
-include ':Templates:egl', ':Templates:glfw', ':Templates:nanovg', ':Templates:openal', 
-	':Templates:opencl', ':Templates:opengl', ':Templates:opengles', ':Templates:ovr',
-	':Templates:stb', ':Templates:system', ':Templates:util', ':Templates:vulkan',
-	':Core', ':Documentation'
+include ':Generator', ':Generator:Core', ':Generator:Templates', ':Generator:Templates:egl', ':Generator:Templates:glfw', ':Generator:Templates:nanovg', ':Generator:Templates:openal', ':Generator:Templates:opencl', ':Generator:Templates:opengl', ':Generator:Templates:opengles', ':Generator:Templates:ovr', ':Generator:Templates:stb', ':Generator:Templates:system', ':Generator:Templates:util', ':Generator:Templates:vulkan'
 
-rootProject.name = 'LWJGL3 Generator'
+rootProject.name = 'LWJGL3'

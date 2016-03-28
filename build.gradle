@@ -1,143 +1,166 @@
-/* Experiment on using gralde to generate LWJGL 3
- * This would require a large re factoring however it would
- * add in the modular build system as well as gradle build
- *
- * Note: this currently looks dumb in eclipse because eclipse
- * does not do subprojects well.
- */
- buildscript {
-   ext.kotlin_version = '1.0.1-1'
+apply plugin: 'kotlin'
+apply plugin: 'java' // ???
+apply plugin: 'eclipse'
+apply plugin: 'application'
 
-   repositories {
-     mavenCentral()
-   }
-
-   dependencies {
-     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-   }
+buildscript {
+  ext.kotlin_version = '1.0.1-1'
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
 }
 
-apply plugin: 'kotlin'
-apply plugin: 'java'
-apply plugin: 'eclipse'
+repositories {
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+}
 
 /*
- * Provides compatibility with eclipse as well as can fix some bugs that occur
- * when importing a gradle project using the gradle plugin.
- */
-apply plugin: 'eclipse'
- 
 dependencies {
-	
 	compile files(org.gradle.internal.jvm.Jvm.current().toolsJar)
-	compile project(':Templates:egl')
-	compile project(':Templates:glfw')
-	compile project(':Templates:nanovg')
-	compile project(':Templates:openal')
-	compile project(':Templates:opencl')
-	compile project(':Templates:opengl')
-	compile project(':Templates:opengles')
-	compile project(':Templates:ovr')
-	compile project(':Templates:stb')
-	compile project(':Templates:system')
-	compile project(':Templates:util')
-	compile project(':Templates:vulkan')
+	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 	
+}*/
+
+jar {
+	baseName = 'lwjgl3-generator'
+	version = '3.0.0b'
 }
 
-// Change the wrapper version. Useful for easy updating of the wrapper.
 task wrapper(type: Wrapper) {
 	gradleVersion = '2.12'
 }
 
+allprojects {
 
-subprojects {
-	
-}
-
-// Base subproject for all written code projects
-project(':Core') {
-
-	apply plugin: 'java'
 	apply plugin: 'eclipse'
 	
-	// TODO: seperate into subprojects
+	sourceCompatibility = 1.6
+	targetCompatibility = 1.6
 	
+	repositories {
+	    mavenCentral()
+	    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+	}
 }
 
-// Base subproject for all Documentation projects
-project(':Documentation') {
-	
-	// TODO: seperate into subprojects
-	
-}
+project(':Generator') {
 
-// Base subproject for all template projects
-project(':Templates') {
+	apply plugin: 'application'
+	
+	// In Kotlin files are renamed to "[package].[name]Kt" and not just "[package].[name]"
+	mainClassName = "org.lwjgl.generator.GeneratorKt"
 
-	// Used to configure settings used by all template subprojects
+	dependencies {
+		
+		compile project(':Generator:Core')
+		compile project(':Generator:Templates:egl')
+		compile project(':Generator:Templates:glfw')
+		compile project(':Generator:Templates:nanovg')
+		compile project(':Generator:Templates:openal')
+		compile project(':Generator:Templates:opencl')
+		compile project(':Generator:Templates:opengl')
+		compile project(':Generator:Templates:opengles')
+		compile project(':Generator:Templates:ovr')
+		compile project(':Generator:Templates:stb')
+		compile project(':Generator:Templates:system')
+		compile project(':Generator:Templates:util')
+		compile project(':Generator:Templates:vulkan')
+		
+	}
+	
 	subprojects {
 		apply plugin: 'kotlin'
-		apply plugin: 'eclipse'
+		
+		dependencies {
+			compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+		}
 	}
-
-	// Subproject containing the templates for the egl bindings
-	project(':Templates:egl') {
-
+	
+	project(':Generator:Core') {
+		
+		dependencies {
+			compile files(org.gradle.internal.jvm.Jvm.current().toolsJar)
+		}
 	}
-
-	// Subproject containing the templates for the glfw bindings
-	project(':Templates:glfw') {
-
-	}
-
-	// Subproject containing the templates for the nanovg bindings
-	project(':Templates:nanovg') {
-
-	}
-
-	// Subproject containing the templates for the openal bindings
-	project(':Templates:openal') {
-
-	}
-
-	// Subproject containing the templates for the opencl bindings
-	project(':Templates:opencl') {
-
-	}
-
-	// Subproject containing the templates for the opengl bindings
-	project(':Templates:opengl') {
-
-	}
-
-	// Subproject containing the templates for the opengles bindings
-	project(':Templates:opengles') {
-
-	}
-
-	// Subproject containing the templates for the ovr bindings
-	project(':Templates:ovr') {
-
-	}
-
-	// Subproject containing the templates for the stb bindings
-	project(':Templates:stb') {
-
-	}
-
-	// Subproject containing the templates for the system bindings
-	project(':Templates:system') {
-
-	}
-
-	// Subproject containing the templates for the util bindings
-	project(':Templates:util') {
-
-	}
-
-	// Subproject containing the templates for the vulkan bindings
-	project(':Templates:vulkan') {
-
+	
+	project(':Generator:Templates') {
+		subprojects {
+			dependencies {
+				compile project(':Generator:Core')
+			}
+		}
+		
+		project(':Generator:Templates:egl') {
+		
+		}
+		
+		project(':Generator:Templates:glfw') {
+			dependencies {
+				compile project(':Generator:Templates:system')
+				compile project(':Generator:Templates:egl')
+				compile project(':Generator:Templates:opengl')
+				compile project(':Generator:Templates:vulkan')
+			}
+		}
+		
+		project(':Generator:Templates:nanovg') {
+			dependencies {
+				compile project(':Generator:Templates:opengl')
+			}
+		}
+		
+		project(':Generator:Templates:openal') {
+		
+		}
+		
+		project(':Generator:Templates:opencl') {
+			dependencies {
+				compile project(':Generator:Templates:opengl')
+			}
+		}
+		
+		project(':Generator:Templates:opengl') {
+		
+			dependencies {
+				compile project(':Generator:Templates:system')
+			}
+			
+			compileKotlin {
+				println 'Removeing bullshit file'
+				exclude 'org/lwjgl/opengl/templates/ARB_cl_event.kt'
+			}
+		}
+		
+		project(':Generator:Templates:opengles') {
+		
+		}
+		
+		project(':Generator:Templates:ovr') {
+			dependencies {
+				compile project(':Generator:Templates:opengl')
+			}
+		}
+		
+		project(':Generator:Templates:stb') {
+		
+		}
+		
+		project(':Generator:Templates:system') {
+		
+		}
+		
+		project(':Generator:Templates:util') {
+		
+		}
+		
+		project(':Generator:Templates:vulkan') {
+			dependencies {
+				compile project(':Generator:Templates:system')
+			}
+		}
 	}
 }
