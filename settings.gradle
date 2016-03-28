@@ -1,0 +1,6 @@
+include ':Templates:egl', ':Templates:glfw', ':Templates:nanovg', ':Templates:openal', 
+	':Templates:opencl', ':Templates:opengl', ':Templates:opengles', ':Templates:ovr',
+	':Templates:stb', ':Templates:system', ':Templates:util', ':Templates:vulkan',
+	':Core', ':Documentation'
+
+rootProject.name = 'LWJGL3 Generator'
