@@ -72,6 +72,13 @@ project(':Generator') {
 		
 	}
 	
+	run {
+	
+		args "${file("Core/src/main/kotlin")}"
+		args "${file("Templates/")}"
+        args "${file('Generated')}"
+	}
+	
 	subprojects {
 		apply plugin: 'kotlin'
 		

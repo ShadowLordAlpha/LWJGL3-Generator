@@ -52,7 +52,7 @@ enum class Binding(val key: String, val packageName: String) {
 	MACOSX_OBJC("binding.macosx.objc", DUMMY_PACKAGE);
 
 	val enabled: Boolean
-		get() = System.getProperty(key, "false").toBoolean()
+		get() = System.getProperty(key, "true").toBoolean()
 }
 
 fun dependsOn(binding: Binding, init: () -> NativeClass): NativeClass? = if ( binding.enabled ) init() else null
@@ -66,13 +66,15 @@ fun main(args: Array<String>) {
 			throw IllegalArgumentException("Invalid $name path: $path")
 	}
 
-	validateDirectory("template source", args[0])
-	validateDirectory("generation target", args[1])
+	println(args[2])
+
+	validateDirectory("template source", args[0].replace("generatorlib", "opencl"))
+	validateDirectory("generation target", args[2])
 
 	// Makes sure we use \n during generation, even on Windows.
 	System.setProperty("line.separator", "\n")
 
-	Generator(args[0], args[1]) {
+	Generator(args[0], args[1], args[2]) {
 		// We discover templates reflectively.
 		// For a package passed to the generate function, we
 		// search for a <package>.templates.TemplatesPackage class file
@@ -143,6 +145,7 @@ fun main(args: Array<String>) {
 }
 
 class Generator(
+	val genPath: String,
 	val srcPath: String,
 	val trgPath: String,
 	generate: Generator.() -> Unit
@@ -169,7 +172,7 @@ class Generator(
 	}
 
 	// TODO: add more, e.g. kotlinc
-	private val GENERATOR_LAST_MODIFIED = getDirectoryLastModified("$srcPath/org/lwjgl/generator", true)
+	private val GENERATOR_LAST_MODIFIED = getDirectoryLastModified("$genPath/org/lwjgl/generator", true)
 
 	init {
 		generate()
@@ -208,7 +211,9 @@ class Generator(
 	}
 
 	fun generate(packageName: String, binding: Binding? = null) {
-		val packagePath = "$srcPath/${packageName.replace('.', '/')}"
+		val libname = "${packageName.split(".")[2]}"
+		val packagePath = "$srcPath/$libname/src/main/kotlin/${packageName.replace('.', '/')}"
+		println(packagePath)
 
 		val packageLastModified = getDirectoryLastModified(packagePath, false)
 		packageLastModifiedMap[packageName] = packageLastModified
@@ -232,7 +237,7 @@ class Generator(
 			}
 		}
 		if ( templates.isEmpty() ) {
-			println("*WARNING* No templates found in $packageName.templates package.")
+			println("*WARNING* No templates found in $packageName.templates package. Path $packagePath/templates")
 			return
 		}
 
@@ -256,8 +261,8 @@ class Generator(
 		val packagePath = nativeClass.packageName.replace('.', '/')
 
 		val outputJava = File("$trgPath/java/$packagePath/${nativeClass.className}.java")
-
-		val touchTimestamp = max(nativeClass.getLastModified("$srcPath/$packagePath/templates"), packageLastModified)
+		val libname = "${nativeClass.packageName.split(".")[2]}"
+		val touchTimestamp = max(nativeClass.getLastModified("$srcPath/$libname/src/main/kotlin/$packagePath/templates"), packageLastModified)
 		if ( outputJava.exists() && touchTimestamp < outputJava.lastModified() ) {
 			//println("SKIPPED: ${nativeClass.packageName}.${nativeClass.className}")
 			return
@@ -296,7 +301,8 @@ class Generator(
 
 		val touchTimestamp: Long?
 		if ( target.packageName != "org.lwjgl.system" ) {
-			touchTimestamp = max(target.getLastModified("$srcPath/$packagePath"), max(packageLastModifiedMap[target.packageName]!!, GENERATOR_LAST_MODIFIED))
+			val libname = "${target.packageName.split(".")[2]}"
+			touchTimestamp = max(target.getLastModified("$srcPath/$libname/src/main/kotlin/$packagePath"), max(packageLastModifiedMap[target.packageName]!!, GENERATOR_LAST_MODIFIED))
 			if ( outputJava.exists() && touchTimestamp < outputJava.lastModified() ) {
 				//println("SKIPPED: ${target.packageName}.${target.className}")
 				return

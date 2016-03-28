@@ -157,4 +157,7 @@ $RECYCLE.BIN/
 *.msp
 
 # Windows shortcuts
-*.lnk
+*.lnkd
+
+# I don't want no generated files on my github
+Generator/Generated/
